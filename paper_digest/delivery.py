@@ -28,6 +28,7 @@ from .digest import (
     render_feedback_brief_markdown,
     render_focus_brief_markdown,
     render_notification_markdown,
+    render_wecom_markdown,
     summarize_action_items,
     summarize_digest,
     summarize_focus_items,
@@ -212,6 +213,8 @@ def _build_notification_message(
         body = render_action_brief_markdown(digest)
     elif feedback_only:
         body = render_feedback_brief_markdown(digest)
+    elif isinstance(delivery, WeComWebhookConfig):
+        body = render_wecom_markdown(digest)
     else:
         body = render_notification_markdown(digest, feedback_only=False)
     return NotificationMessage(

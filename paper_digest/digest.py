@@ -273,6 +273,95 @@ def render_notification_markdown(
     return _render_default_markdown(digest)
 
 
+def render_wecom_markdown(digest: DigestRun) -> str:
+    """Render a compact WeCom report without repeating paper titles."""
+
+    local_tz = ZoneInfo(digest.timezone)
+    generated_at = digest.generated_at.astimezone(local_tz).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    is_zh = digest.template == "zh_daily_brief"
+    lines = [
+        "# 每日论文简报" if is_zh else "# Daily Paper Digest",
+        "",
+        (
+            f"- 生成时间：{generated_at} ({digest.timezone})"
+            if is_zh
+            else f"- Generated at: {generated_at} ({digest.timezone})"
+        ),
+        (
+            f"- 检索窗口：最近 {digest.lookback_hours} 小时"
+            if is_zh
+            else f"- Lookback window: last {digest.lookback_hours} hours"
+        ),
+        (
+            f"- 命中概览：{summarize_digest(digest)}"
+            if is_zh
+            else f"- Matches: {summarize_digest(digest)}"
+        ),
+        "",
+    ]
+
+    lines.append("## 栏目状态" if is_zh else "## Feed status")
+    lines.append("")
+    for feed in digest.feeds:
+        count = len(feed.papers)
+        lines.append(
+            f"- {feed.name}：{count} 篇"
+            if is_zh
+            else f"- {feed.name}: {count} papers"
+        )
+    lines.append("")
+
+    topics = [
+        f"{topic.name}：{topic.paper_count} 篇" if is_zh
+        else f"{topic.name}: {topic.paper_count} papers"
+        for topic in digest.topic_sections
+    ]
+    if topics:
+        lines.append("## 主题命中" if is_zh else "## Topic matches")
+        lines.extend(f"- {topic}" for topic in topics)
+        lines.append("")
+
+    lines.append("## 论文清单" if is_zh else "## Papers")
+    lines.append("")
+    for feed in digest.feeds:
+        if not feed.papers:
+            continue
+        lines.append(
+            f"### {feed.name}（{len(feed.papers)} 篇）"
+            if is_zh
+            else f"### {feed.name} ({len(feed.papers)} papers)"
+        )
+        lines.append("")
+        for index, paper in enumerate(feed.papers, start=1):
+            display_title = translated_title(paper) if is_zh else paper.title
+            published = paper.published_at.astimezone(local_tz).strftime(
+                "%Y-%m-%d %H:%M"
+            )
+            lines.append(f"{index}. [{display_title}]({paper.abstract_url})")
+            if is_zh and paper.translation is not None:
+                lines.append(f"   - 英文原题：{paper.title}")
+            lines.append(
+                f"   - 来源：{paper.source_label()}；时间：{published}"
+                if is_zh
+                else f"   - Source: {paper.source_label()}; time: {published}"
+            )
+            if paper.analysis is not None:
+                lines.append(
+                    f"   - 一句话结论：{paper.analysis.conclusion}"
+                    if is_zh
+                    else f"   - Conclusion: {paper.analysis.conclusion}"
+                )
+            elif is_zh and paper.translation is not None:
+                lines.append(f"   - 中文摘要：{translated_summary(paper)}")
+            else:
+                lines.append(f"   - Summary: {paper.summary}")
+            lines.append("")
+
+    return "\n".join(lines).strip() + "\n"
+
+
 def render_feedback_brief_markdown(digest: DigestRun) -> str:
     if digest.template == "zh_daily_brief":
         return _render_zh_focus_only_brief(digest)

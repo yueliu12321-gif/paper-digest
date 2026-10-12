@@ -32,7 +32,7 @@ def send_wecom_message(
     archive_url = _archive_url()
     report_body = body
     if archive_url:
-        report_body = f"[完整 HTML 报告]({archive_url})\n\n{body}"
+        report_body = f"完整 HTML 报告：\n{archive_url}\n\n{body}"
 
     content = _normalize_markdown(title, report_body)
     chunks = _chunk_markdown(content)
