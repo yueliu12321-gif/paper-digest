@@ -649,6 +649,10 @@ Notes:
 - `target = "digest"` sends one message for the whole run.
 - `target = "per_feed"` sends one message per feed, with the title including
   the date and that feed's hit count.
+- WeCom webhook reports are split into complete Markdown messages below the
+  channel size limit instead of being truncated. When running in GitHub
+  Actions, the first message includes the repository's GitHub Pages archive
+  URL. Set `PAPER_DIGEST_ARCHIVE_URL` when using a custom archive URL.
 - `include_focus = false` keeps the delivery on the normal digest path without
   the feedback-driven Focus block.
 - `focus_target = "digest"` keeps Focus inline with the main digest, while

@@ -241,6 +241,10 @@ max_items = 10
 # action_overdue_only = false
 # action_due_within_days = 7
 
+# WeCom messages longer than the channel limit are sent as multiple complete
+# messages. GitHub Actions automatically adds the repository's Pages URL to
+# the first message; set PAPER_DIGEST_ARCHIVE_URL to override it.
+
 # Example Feishu webhook delivery:
 # [[deliveries]]
 # type = "feishu_webhook"
